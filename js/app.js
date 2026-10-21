@@ -327,16 +327,18 @@ const cones = {
   mUmb: makeCone(0xff6a4a, 0.3, 2.5, 5),
 };
 
-// Display axis of a shadow: real geometry, compressed distance. The axis is tilted so that
-// the shadow keeps its true position relative to the target body (Earth or Moon).
+// Display axis of a shadow: the cone centre is A_d + t·v at real distance t behind body A.
+// Compressing distances by k would also shrink the offset of the axis from the target body
+// (Earth for the Moon's shadow, the Moon for Earth's) to k·p. The axis is tilted to restore it:
+// the drawn offset is k·p + (1-k)·g(p), with g(p) = p up to ~2 R⊕ (all eclipses) and saturating
+// at 3 R⊕ beyond. It grows monotonically with p, so the cone never swings back and forth.
 const smooth = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
-function displayAxis(Ad, Ar, u, Tr, Td, k) {
-  const rel = v3.sub(Tr, Ar), t0 = v3.dot(rel, u), pT = v3.sub(rel, v3.mul(u, t0));
-  const vFall = v3.mul(u, k);
-  if (t0 < 1) return vFall;
-  const w = 1 - smooth(4, 10, v3.len(pT));
-  const vEx = v3.mul(v3.sub(v3.sub(Td, pT), Ad), 1 / t0);
-  return v3.add(v3.mul(vFall, 1 - w), v3.mul(vEx, w));
+function displayAxis(Ar, u, Tr, k) {
+  const rel = v3.sub(Tr, Ar), t0 = v3.dot(rel, u), pT = v3.sub(rel, v3.mul(u, t0)), p = v3.len(pT);
+  const fade = smooth(5, 45, t0);
+  if (fade === 0 || p < 1e-9) return v3.mul(u, k);
+  const g = p / Math.pow(1 + Math.pow(p / 3, 8), 1 / 8);
+  return v3.add(v3.mul(u, k), v3.mul(pT, -(1 - k) * g / p * fade / t0));
 }
 
 // ---------------------------------------------------------------- labels
@@ -557,7 +559,7 @@ function update(now) {
   const showC = S.show.cones;
   {
     const ms = st.ms, TEND = 66;
-    const v = displayAxis(md, st.moon, ms.u, [0, 0, 0], [0, 0, 0], k);
+    const v = displayAxis(st.moon, ms.u, [0, 0, 0], k);
     const at = t => v3.add(md, v3.mul(v, t));
     cones.mPen.set(at(0), at(TEND), ms.rp(0), ms.rp(TEND));
     const tu = Math.min(ms.Lu, TEND);
@@ -569,7 +571,7 @@ function update(now) {
   // Earth's shadow
   {
     const es = st.es, TEND = 80;
-    const v = displayAxis([0, 0, 0], [0, 0, 0], es.u, st.moon, md, k);
+    const v = displayAxis([0, 0, 0], es.u, st.moon, k);
     const at = t => v3.mul(v, t);
     cones.ePen.set(at(0), at(TEND), es.rp(0), es.rp(TEND));
     cones.eUmb.set(at(0), at(TEND), es.ru(0), es.ru(TEND));
