@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="et">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Varjutuste mudel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+<div id="stage"></div>
+<div id="labels"></div>
+<div id="loading">Laen 3D-mudelit…</div>
+
+<header class="brand">
+  <h1>Kuidas tekib <em>päikesevarjutus</em></h1>
+  <p>Maa ja Kuu on õiges suuruses. Kuu kaugus on kokku surutud, aga varjude suurus ja asukoht Maal on arvutatud tegelike kauguste järgi.</p>
+</header>
+
+<aside id="panel">
+  <button id="panelToggle" aria-expanded="true"><span id="toggleLabel">Tingimused</span><span aria-hidden="true">▾</span></button>
+  <div class="pscroll">
+    <section class="status" aria-live="polite">
+      <span class="eyebrow">Praegu</span>
+      <div id="statusMain">—</div>
+      <div class="next" id="nextInfo"></div>
+    </section>
+
+    <section>
+      <h2>Täieliku varjutuse tingimused</h2>
+      <ul class="checks">
+        <li id="c1" data-state="off"><span class="dot"></span><div><b>Noorkuu</b><span class="val" id="c1v"></span>
+          <p>Kuu peab olema Päikese ja Maa vahel.</p></div></li>
+        <li id="c2" data-state="off"><span class="dot"></span><div><b>Päike on sõlme lähedal</b><span class="val" id="c2v"></span>
+          <p>Kuu orbiit on ekliptika suhtes 5,1° kaldu. Kuu vari tabab Maad ainult siis, kui noorkuu on sõlmede joone lähedal. See on varjutuste hooaeg ja kestab umbes ±18° (~37 päeva).</p></div></li>
+        <li id="c3" data-state="off"><span class="dot"></span><div><b>Varju telg tabab Maad</b><span class="val" id="c3v"></span>
+          <p>γ on varju telje kaugus Maa keskpunktist Maa raadiustes. Kui |γ| &lt; 1, on varjutus tsentraalne.</p></div></li>
+        <li id="c4" data-state="off"><span class="dot"></span><div><b>Täisvari ulatub Maani</b><span class="val" id="c4v"></span>
+          <p>Kuu kaugus muutub 356 000 km ja 407 000 km vahel. Kui Kuu on kaugel, jääb täisvarju koonus Maa pinnast lühemaks ja varjutus on rõngakujuline.</p></div></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Vaade</h2>
+      <div class="grid" id="views">
+        <button data-view="overview">Ülevaade</button>
+        <button data-view="sun">Päikese poolt</button>
+        <button data-view="top">Ekliptika kohalt</button>
+        <button data-view="edge">Ekliptika servast</button>
+        <button data-view="shadow">Kuu tagant</button>
+        <button data-view="earth">Maa lähedalt</button>
+        <button data-view="spot">Täisvari lähedalt</button>
+        <button data-view="moon">Kuu lähedalt</button>
+      </div>
+    </section>
+
+    <section>
+      <h2>Varjutused</h2>
+      <div class="presets" id="presets"></div>
+    </section>
+
+    <section class="row">
+      <h2>Seaded</h2>
+      <span class="eyebrow">Taustsüsteem</span>
+      <div class="seg" id="frameSeg">
+        <button data-frame="sun" aria-pressed="true">Päike paigal</button>
+        <button data-frame="stars" aria-pressed="false">Tähed paigal</button>
+      </div>
+      <p class="note">Kui Päike on paigal, on hästi näha, kuidas sõlmede joon pöörleb: Päikese suhtes teeb see täisringi 346,6 päevaga (varjutusaasta).</p>
+      <label for="dist">Kuu kaugus mudelis <output id="distOut"></output></label>
+      <input type="range" id="dist" min="15" max="60.27" step="0.01" value="30">
+      <div class="toggles">
+        <label><input type="checkbox" id="tCones" checked> Varjukoonused</label>
+        <label><input type="checkbox" id="tOrbit" checked> Kuu orbiit</label>
+        <label><input type="checkbox" id="tNodes" checked> Sõlmed ja hooajad</label>
+        <label><input type="checkbox" id="tHi" checked> Varjude kontuurid</label>
+        <label><input type="checkbox" id="tLabels" checked> Sildid</label>
+        <label><input type="checkbox" id="tEarthSh" checked> Maa vari</label>
+      </div>
+    </section>
+
+    <section>
+      <h2>Tähised</h2>
+      <div class="legend">
+        <span><i style="background:var(--penumbra)"></i>Poolvari</span>
+        <span><i style="background:var(--umbra)"></i>Täisvari</span>
+        <span><i style="background:var(--antumbra)"></i>Antumbra (rõngas)</span>
+        <span><i style="background:#c4554a;opacity:.7"></i>Maa täisvari</span>
+        <span><i style="background:var(--node)"></i>Sõlmede joon</span>
+        <span><i style="background:rgba(243,197,107,.5)"></i>Varjutuste hooaeg</span>
+        <span><i style="background:#8ed8ef"></i>Kuu ekliptikast põhjas</span>
+        <span><i style="background:#3d6a82"></i>Kuu ekliptikast lõunas</span>
+      </div>
+      <p class="note" style="margin-top:10px">Maal näitavad kontuurid, kui suur osa Päikese läbimõõdust on kaetud (20%, 40%, 60%, 80%). Täisvari on punane ja rõngasvarjutuse ala oranž. Joon on varjutuse keskjoon. Kuu ja Päikese asukoht on arvutatud Meeusi järgi, täpsus umbes 0,01°.</p>
+    </section>
+  </div>
+</aside>
+
+<footer id="timebar">
+  <div class="clock"><span id="clockDate">—</span> <span class="t" id="clockTime"></span><span class="ut">UT</span></div>
+  <div class="tgroup">
+    <button id="prevEcl" title="Eelmine päikesevarjutus">◂◂ <span class="hide-narrow">Varjutus</span></button>
+    <button id="prevNM" title="Eelmine noorkuu">◂ <span class="hide-narrow">Noorkuu</span></button>
+    <button id="stepBack" title="Samm tagasi">−</button>
+    <button id="play" title="Käivita / peata (tühik)" aria-label="Käivita">▶</button>
+    <button id="stepFwd" title="Samm edasi">+</button>
+    <button id="nextNM" title="Järgmine noorkuu"><span class="hide-narrow">Noorkuu</span> ▸</button>
+    <button id="nextEcl" title="Järgmine päikesevarjutus"><span class="hide-narrow">Varjutus</span> ▸▸</button>
+  </div>
+  <div class="spacer"></div>
+  <div class="tgroup">
+    <label for="speed" class="eyebrow hide-narrow">Kiirus</label>
+    <select id="speed">
+      <option value="0.000694444">1 min/s</option>
+      <option value="0.00694444" selected>10 min/s</option>
+      <option value="0.0416667">1 tund/s</option>
+      <option value="0.25">6 tundi/s</option>
+      <option value="1">1 päev/s</option>
+      <option value="7">1 nädal/s</option>
+      <option value="29.53">1 kuu/s</option>
+      <option value="91.3">3 kuud/s</option>
+    </select>
+    <input type="datetime-local" id="dtInput" step="60" aria-label="Kuupäev ja kellaaeg (UT)">
+  </div>
+</footer>
+
+<script type="importmap">
+{ "imports": {
+  "three": "./js/vendor/three/three.module.js",
+  "three/addons/": "./js/vendor/three/addons/"
+} }
+</script>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
