@@ -125,6 +125,14 @@ function sceneToEarth(p, g) {
 }
 const latLonOf = p => ({ lat: Math.asin(p[1] / v3.len(p)) / DEG, lon: Math.atan2(-p[2], p[0]) / DEG });
 
+// Instantaneous plane of the Moon's orbit: pole (unit vector, scene frame), true ascending node, inclination
+function moonOrbit(jde) {
+  const a = moonEcl(jde - 0.5), b = moonEcl(jde + 0.5);
+  const pole = v3.norm(v3.cross(eclVec(a.lon, a.lat, 1), eclVec(b.lon, b.lat, 1)));
+  const asc = v3.cross([0, 1, 0], pole);
+  return { pole, node: Math.atan2(-asc[2], asc[0]), incl: Math.acos(pole[1]) };
+}
+
 // Full geometric state at UT Julian date
 function stateAt(jd) {
   const jde = jd + DELTA_T;
@@ -262,5 +270,5 @@ function findLunarEclipse(jd, dir) {
 }
 
 export {
-  DEG, RE_KM, R_SUN, R_MOON, AU_RE, EARTH_SHADOW_ENLARGE, DELTA_T, OBLIQ, jdFromMs, msFromJd, moonEcl, sunEcl, meanNode, gmst, eclVec, v3, wrapPi, earthToScene, sceneToEarth, latLonOf, stateAt, solarStatus, lunarStatus, findPhase, goldenMin, solarEclipseAt, lunarEclipseAt, findSolarEclipse, findLunarEclipse,
+  DEG, RE_KM, R_SUN, R_MOON, AU_RE, EARTH_SHADOW_ENLARGE, DELTA_T, OBLIQ, jdFromMs, msFromJd, moonEcl, moonOrbit, sunEcl, meanNode, gmst, eclVec, v3, wrapPi, earthToScene, sceneToEarth, latLonOf, stateAt, solarStatus, lunarStatus, findPhase, goldenMin, solarEclipseAt, lunarEclipseAt, findSolarEclipse, findLunarEclipse,
 };

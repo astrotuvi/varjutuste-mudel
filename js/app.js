@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 import {
-  DEG, RE_KM, R_SUN, R_MOON, EARTH_SHADOW_ENLARGE, DELTA_T, OBLIQ, jdFromMs, msFromJd, moonEcl, eclVec, v3, wrapPi, sceneToEarth, stateAt, solarStatus, lunarStatus, findPhase, solarEclipseAt, lunarEclipseAt, findSolarEclipse, findLunarEclipse,
+  DEG, RE_KM, R_SUN, R_MOON, EARTH_SHADOW_ENLARGE, DELTA_T, OBLIQ, jdFromMs, msFromJd, moonEcl, moonOrbit, eclVec, v3, wrapPi, sceneToEarth, stateAt, solarStatus, lunarStatus, findPhase, solarEclipseAt, lunarEclipseAt, findSolarEclipse, findLunarEclipse,
 } from './ephem.js';
 
 const EARTH_TEX = 'textures/earth.jpg';
@@ -12,7 +12,7 @@ const MEAN_MOON_RE = 384400 / RE_KM;
 const S = {
   jd: 0, playing: false, speed: 10 / 1440, frame: 'sun', Dd: 30,
   view: 'overview', tracking: true,
-  show: { cones: true, orbit: true, nodes: true, hi: true, labels: true, earthSh: true },
+  show: { cones: true, orbit: true, plane: true, nodes: true, hi: true, labels: true, earthSh: true },
 };
 
 // ---------------------------------------------------------------- renderer
@@ -255,6 +255,17 @@ trailGeo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(TRAIL_
 const trail = new THREE.Line(trailGeo, new THREE.LineBasicMaterial({ vertexColors: true }));
 trail.frustumCulled = false;
 root.add(trail);
+// Moon's orbital plane, coloured north/south of the ecliptic like the trail
+const orbitPlane = new THREE.Mesh(flat(new THREE.CircleGeometry(1, 160)), new THREE.ShaderMaterial({
+  vertexShader: `varying float vY;
+    void main() { vec4 w = modelMatrix * vec4(position, 1.0); vY = w.y; gl_Position = projectionMatrix * viewMatrix * w; }`,
+  fragmentShader: `varying float vY;
+    void main() { gl_FragColor = vY >= 0.0 ? vec4(0.56, 0.85, 0.94, 0.12) : vec4(0.24, 0.42, 0.51, 0.12); }`,
+  transparent: true, depthWrite: false, side: THREE.DoubleSide,
+}));
+orbitPlane.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(circlePts(1)),
+  new THREE.LineBasicMaterial({ color: 0x8ed8ef, transparent: true, opacity: 0.45 })));
+root.add(orbitPlane);
 const dropGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]);
 const dropLine = new THREE.Line(dropGeo, new THREE.LineBasicMaterial({ color: 0x8ed8ef, transparent: true, opacity: 0.6 }));
 dropLine.frustumCulled = false;
@@ -449,7 +460,7 @@ function updatePanel(st) {
   const dn = Math.abs(wrapPi(2 * (st.sunLon - st.node)) / 2) / DEG;    // distance to the nearer node
   const beta = st.moonLat / DEG;
   setCheck('c2', dn < 18.5 ? 'ok' : dn < 30 ? 'near' : 'off',
-    `Päike sõlmest ${fnum(dn, 1)}°${dn < 18.5 ? ' · <span style="color:var(--ok)">hooaeg</span>' : ''}<br>Kuu ekliptikast ${fnum(Math.abs(beta), 2)}° ${beta >= 0 ? 'põhjas' : 'lõunas'}`);
+    `Päike sõlmest ${fnum(dn, 1)}°${dn < 18.5 ? ' · <span style="color:var(--ok)">hooaeg</span>' : ''}<br>Kuu ekliptikast ${fnum(Math.abs(beta), 2)}° ${beta >= 0 ? 'põhjas' : 'lõunas'} · orbiidi kalle ${fnum(st.incl / DEG, 2)}°`);
 
   // 3. Axis hits Earth
   const ms = st.ms;
@@ -478,6 +489,9 @@ function update(now) {
   const st = stateAt(S.jd);
   const k = S.Dd / MEAN_MOON_RE;
   const ringR = 1.9 * S.Dd;
+  const orb = moonOrbit(S.jd + DELTA_T);
+  st.node = orb.node;           // true node, so the node line lies in both drawn planes
+  st.incl = orb.incl;
 
   root.rotation.y = S.frame === 'sun' ? -st.sunLon : 0;
   root.updateMatrixWorld(true);
@@ -515,6 +529,11 @@ function update(now) {
   const ascDir = eclVec(st.node, 0, 1);
   nodeMarkers[0].position.set(...v3.mul(ascDir, S.Dd)); nodeMarkers[1].position.set(...v3.mul(ascDir, -S.Dd));
   nodeMarkers.forEach(m => { m.visible = S.show.nodes; m.scale.setScalar(S.Dd / 30); });
+
+  // Moon's orbital plane
+  orbitPlane.visible = S.show.plane;
+  orbitPlane.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), vec(orb.pole));
+  orbitPlane.scale.setScalar(1.1 * S.Dd);
 
   // Moon trail
   trail.visible = dropLine.visible = S.show.orbit;
@@ -623,7 +642,7 @@ document.querySelectorAll('#frameSeg button').forEach(b => b.onclick = () => {
 });
 $('dist').oninput = ev => { S.Dd = parseFloat(ev.target.value); lastPanel = 0; if (S.view) S.tracking = true; };
 const tog = (id, key) => { $(id).onchange = ev => { S.show[key] = ev.target.checked; }; };
-tog('tCones', 'cones'); tog('tOrbit', 'orbit'); tog('tNodes', 'nodes'); tog('tHi', 'hi'); tog('tLabels', 'labels'); tog('tEarthSh', 'earthSh');
+tog('tCones', 'cones'); tog('tOrbit', 'orbit'); tog('tPlane', 'plane'); tog('tNodes', 'nodes'); tog('tHi', 'hi'); tog('tLabels', 'labels'); tog('tEarthSh', 'earthSh');
 $('panelToggle').onclick = () => {
   const p = $('panel'); const c = p.classList.toggle('collapsed');
   $('panelToggle').setAttribute('aria-expanded', String(!c));
