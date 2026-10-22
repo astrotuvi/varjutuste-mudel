@@ -10,8 +10,8 @@ const MEAN_MOON_RE = 384400 / RE_KM;
 
 // ---------------------------------------------------------------- state
 const S = {
-  jd: 0, playing: false, speed: 10 / 1440, frame: 'sun', Dd: 30,
-  view: 'overview', tracking: true,
+  jd: 0, playing: false, speed: 10 / 1440, frame: 'sun', Dd: MEAN_MOON_RE,
+  view: 'overview', tracking: true, zoom: 1, zoomGoal: 1,
   show: { cones: true, orbit: true, plane: true, nodes: true, hi: true, labels: true, earthSh: true },
 };
 
@@ -364,8 +364,8 @@ function viewPose(name, st) {
     case 'top': return { pos: up.clone().multiplyScalar(4.6 * D).addScaledVector(s, -0.02 * D), tgt: O };
     case 'edge': return { pos: side.clone().multiplyScalar(3.4 * D).addScaledVector(s, 0.6 * D).addScaledVector(up, 0.01 * D), tgt: s.clone().multiplyScalar(0.6 * D) };
     case 'shadow': { const m = W(v3.mul(st.moon, k)); return { pos: m.clone().addScaledVector(s, 5).addScaledVector(up, 0.8), tgt: O }; }
-    case 'earth': return { pos: s.clone().addScaledVector(side, 0.9).addScaledVector(up, 0.35).normalize().multiplyScalar(3.4), tgt: O };
-    case 'moon': { const m = W(v3.mul(st.moon, k)); return { pos: m.clone().addScaledVector(s, 0.9).addScaledVector(side, 0.9).addScaledVector(up, 0.4), tgt: m }; }
+    case 'earth': return { pos: s.clone().addScaledVector(side, 0.9).addScaledVector(up, 0.35).normalize().multiplyScalar(8), tgt: O };
+    case 'moon': { const m = W(v3.mul(st.moon, k)); return { pos: m.clone().addScaledVector(s, 2.1).addScaledVector(side, 2.1).addScaledVector(up, 0.95), tgt: m }; }
     case 'spot': {
       let P = st.ms.surf;
       if (!P) { const p = st.ms.p, l = v3.len(p); P = (st.ms.t0 > 0 && l > 1e-6) ? v3.mul(p, 1 / l) : st.sunDir; }
@@ -375,7 +375,7 @@ function viewPose(name, st) {
   }
 }
 function setView(name) {
-  S.view = name; S.tracking = true;
+  S.view = name; S.tracking = true; S.zoom = S.zoomGoal = 1;
   trans = { t: 0, pos: camera.position.clone(), tgt: controls.target.clone() };
   markView(name);
 }
@@ -574,9 +574,14 @@ function update(now) {
   setTrack(e && Math.abs(S.jd - e.jd) < 0.3 && ['total', 'annular', 'hybrid'].includes(e.type) ? e : null);
   if (track) track.visible = S.show.hi;
 
-  // Camera
+  // Camera (zoom eases toward its goal; it scales the distance to the target)
+  let zNew = S.zoom + (S.zoomGoal - S.zoom) * 0.2;
+  if (Math.abs(S.zoomGoal - zNew) < 1e-4 * S.zoomGoal) zNew = S.zoomGoal;
+  const zRatio = zNew / S.zoom;
+  S.zoom = zNew;
   if (S.tracking && S.view) {
     const pose = viewPose(S.view, st);
+    pose.pos.sub(pose.tgt).multiplyScalar(S.zoom).add(pose.tgt);
     if (trans) {
       trans.t = Math.min(1, trans.t + 1 / 50);
       const a = trans.t < 0.5 ? 4 * trans.t ** 3 : 1 - (-2 * trans.t + 2) ** 3 / 2;
@@ -585,7 +590,10 @@ function update(now) {
       if (trans.t >= 1) trans = null;
     } else { camera.position.copy(pose.pos); controls.target.copy(pose.tgt); }
     camera.lookAt(controls.target);
-  } else controls.update();
+  } else {
+    if (zRatio !== 1) camera.position.sub(controls.target).multiplyScalar(zRatio).add(controls.target);
+    controls.update();
+  }
   const cd = camera.position.length();
   camera.near = Math.min(1, Math.max(0.0005, (cd - 1.02) * 0.25));
   camera.far = 30000;
@@ -635,6 +643,19 @@ document.querySelectorAll('#frameSeg button').forEach(b => b.onclick = () => {
 $('dist').oninput = ev => { S.Dd = parseFloat(ev.target.value); lastPanel = 0; if (S.view) S.tracking = true; };
 const tog = (id, key) => { $(id).onchange = ev => { S.show[key] = ev.target.checked; }; };
 tog('tCones', 'cones'); tog('tOrbit', 'orbit'); tog('tPlane', 'plane'); tog('tNodes', 'nodes'); tog('tHi', 'hi'); tog('tLabels', 'labels'); tog('tEarthSh', 'earthSh');
+function zoomBy(f) {
+  const d = camera.position.distanceTo(controls.target) * (S.zoomGoal / S.zoom);
+  const nd = Math.min(controls.maxDistance, Math.max(controls.minDistance, d * f));
+  S.zoomGoal *= nd / d;
+}
+for (const [id, f] of [['zoomIn', 0.75], ['zoomOut', 1 / 0.75]]) {
+  const b = $(id);
+  let timer = null;
+  const stop = () => { clearInterval(timer); timer = null; };
+  b.onpointerdown = ev => { ev.preventDefault(); zoomBy(f); stop(); timer = setInterval(() => zoomBy(f), 160); };
+  b.onpointerup = b.onpointerleave = b.onpointercancel = stop;
+  b.onclick = ev => { if (ev.detail === 0) zoomBy(f); };   // keyboard activation
+}
 $('panelToggle').onclick = () => {
   const p = $('panel'); const c = p.classList.toggle('collapsed');
   $('panelToggle').setAttribute('aria-expanded', String(!c));
@@ -644,6 +665,8 @@ addEventListener('keydown', ev => {
   if (ev.code === 'Space') { ev.preventDefault(); setPlaying(!S.playing); }
   else if (ev.key === 'ArrowRight') { S.jd += S.speed; lastPanel = 0; }
   else if (ev.key === 'ArrowLeft') { S.jd -= S.speed; lastPanel = 0; }
+  else if (ev.key === '+' || ev.key === '=') zoomBy(0.75);
+  else if (ev.key === '-' || ev.key === '−') zoomBy(1 / 0.75);
 });
 
 // Presets
