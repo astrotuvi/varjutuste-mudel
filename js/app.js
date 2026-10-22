@@ -12,6 +12,7 @@ const MEAN_MOON_RE = 384400 / RE_KM;
 const S = {
   jd: 0, playing: false, speed: 10 / 1440, frame: 'sun', Dd: MEAN_MOON_RE,
   view: 'overview', tracking: true, zoom: 1, zoomGoal: 1,
+  anchor: null,   // Sun direction kept by the overview views in the star-fixed frame (null: take the current one)
   show: { cones: true, orbit: true, plane: true, nodes: true, hi: true, labels: true, earthSh: true },
 };
 
@@ -412,9 +413,13 @@ function placeLabel(el, worldPos, ok = true) {
 let trans = null;
 const W = a => root.localToWorld(vec(a));
 const Wd = a => vec(a).applyQuaternion(root.quaternion);
+// With the stars fixed, these views stay fixed too, so the Sun is seen moving around in a year
+const STAR_FIXED_VIEWS = new Set(['overview', 'top', 'edge']);
 function viewPose(name, st) {
   const k = S.Dd / MEAN_MOON_RE;
-  const s = Wd(st.sunDir), up = new THREE.Vector3(0, 1, 0);
+  let sunDir = st.sunDir;
+  if (S.frame === 'stars' && STAR_FIXED_VIEWS.has(name)) sunDir = S.anchor ??= st.sunDir.slice();
+  const s = Wd(sunDir), up = new THREE.Vector3(0, 1, 0);
   const side = new THREE.Vector3().crossVectors(up, s).normalize();
   const O = new THREE.Vector3();
   const D = S.Dd;
@@ -435,7 +440,7 @@ function viewPose(name, st) {
   }
 }
 function setView(name) {
-  S.view = name; S.tracking = true; S.zoom = S.zoomGoal = 1;
+  S.view = name; S.tracking = true; S.zoom = S.zoomGoal = 1; S.anchor = null;
   trans = { t: 0, pos: camera.position.clone(), tgt: controls.target.clone() };
   markView(name);
 }
@@ -686,14 +691,15 @@ function loop(now) {
 
 // ---------------------------------------------------------------- controls wiring
 function setPlaying(p) { S.playing = p; $('play').textContent = p ? '❚❚' : '▶'; $('play').setAttribute('aria-label', p ? 'Peata' : 'Käivita'); }
-function jumpTo(jd) { S.jd = jd; setPlaying(false); lastEcl = 0; lastPanel = 0; }
+// reanchor: turn the star-fixed overview views to the Sun again (for jumps far away in time)
+function jumpTo(jd, reanchor = false) { S.jd = jd; setPlaying(false); lastEcl = 0; lastPanel = 0; if (reanchor) S.anchor = null; }
 $('play').onclick = () => setPlaying(!S.playing);
 $('stepBack').onclick = () => { S.jd -= S.speed; lastPanel = 0; };
 $('stepFwd').onclick = () => { S.jd += S.speed; lastPanel = 0; };
 $('nextNM').onclick = () => jumpTo(findPhase(S.jd, 0, 1));
 $('prevNM').onclick = () => jumpTo(findPhase(S.jd, 0, -1));
-$('nextEcl').onclick = () => { const e = findSolarEclipse(S.jd, 1); if (e) jumpTo(e.jd); };
-$('prevEcl').onclick = () => { const e = findSolarEclipse(S.jd, -1); if (e) jumpTo(e.jd); };
+$('nextEcl').onclick = () => { const e = findSolarEclipse(S.jd, 1); if (e) jumpTo(e.jd, true); };
+$('prevEcl').onclick = () => { const e = findSolarEclipse(S.jd, -1); if (e) jumpTo(e.jd, true); };
 function setSpeedIndex(i) {
   const sel = $('speed');
   sel.selectedIndex = Math.min(sel.options.length - 1, Math.max(0, i));
@@ -704,10 +710,10 @@ function setSpeedIndex(i) {
 $('speed').onchange = () => setSpeedIndex($('speed').selectedIndex);
 $('slower').onclick = () => setSpeedIndex($('speed').selectedIndex - 1);
 $('faster').onclick = () => setSpeedIndex($('speed').selectedIndex + 1);
-$('dtInput').onchange = ev => { const t = Date.parse(ev.target.value + ':00Z'); if (!isNaN(t)) jumpTo(jdFromMs(t)); };
+$('dtInput').onchange = ev => { const t = Date.parse(ev.target.value + ':00Z'); if (!isNaN(t)) jumpTo(jdFromMs(t), true); };
 document.querySelectorAll('#views button').forEach(b => b.onclick = () => setView(b.dataset.view));
 document.querySelectorAll('#frameSeg button').forEach(b => b.onclick = () => {
-  S.frame = b.dataset.frame;
+  S.frame = b.dataset.frame; S.anchor = null;
   document.querySelectorAll('#frameSeg button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
 });
 document.querySelectorAll('#schemeSeg button').forEach(b => b.onclick = () => applyScheme(b.dataset.scheme));
@@ -761,7 +767,7 @@ for (const [kind, [y, m, d, h], ds, text] of PRESETS) {
   b.onclick = () => {
     const jd0 = jdFromMs(Date.UTC(y, m - 1, d, h));
     const e = kind === 'solar' ? solarEclipseAt(findPhase(jd0, 0, 0)) : lunarEclipseAt(findPhase(jd0, Math.PI, 0));
-    if (e) jumpTo(e.jd);
+    if (e) jumpTo(e.jd, true);
     if (kind === 'lunar' && (S.view === 'sun' || S.view === 'spot')) setView('overview');
   };
   $('presets').appendChild(b);
