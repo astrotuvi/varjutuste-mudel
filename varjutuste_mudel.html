@@ -24,10 +24,52 @@
   --ok: #6fd39b;
   --near: #f3c56b;
   --off: #5b6275;
+  --halo: #000;
+  --lbl-small: #d8d2bf;
+  --val: #cfd5e4;
+  --lunar: #e58b6a;
+  --accent-soft: rgba(243, 197, 107, .18);
+  --accent-edge: rgba(243, 197, 107, .5);
+  --pressed-ink: #fff3d6;
+  --ok-glow: rgba(111, 211, 155, .6);
+  --e-umbra: rgba(196, 85, 74, .7);
+  --season: rgba(243, 197, 107, .5);
+  --orbit-n: #8ed8ef;
+  --orbit-s: #3d6a82;
   --f-display: "Fraunces", Georgia, serif;
   --f-body: "IBM Plex Sans", system-ui, sans-serif;
   --f-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
   color-scheme: dark;
+}
+/* Bright scheme, switched by the Värviskeem control (data-scheme on <html>) */
+:root[data-scheme="light"] {
+  --space: #eef1f6;
+  --glass: rgba(255, 255, 255, 0.88);
+  --glass-2: rgba(242, 245, 250, 0.96);
+  --line: rgba(40, 55, 90, 0.16);
+  --ink: #1b2233;
+  --muted: #5a6378;
+  --corona: #a86f0a;
+  --umbra: #c8391a;
+  --penumbra: #3b67c4;
+  --antumbra: #c27408;
+  --node: #7a4fd6;
+  --ok: #1f9d5a;
+  --near: #b07a12;
+  --off: #a3aabb;
+  --halo: #fff;
+  --lbl-small: #6b3a10;
+  --val: #2c3549;
+  --lunar: #b5532f;
+  --accent-soft: rgba(201, 138, 18, .14);
+  --accent-edge: rgba(168, 111, 10, .55);
+  --pressed-ink: #4a3200;
+  --ok-glow: rgba(31, 157, 90, .35);
+  --e-umbra: rgba(156, 47, 37, .7);
+  --season: rgba(224, 160, 32, .55);
+  --orbit-n: #006b94;
+  --orbit-s: #85b0c4;
+  color-scheme: light;
 }
 html, body { height: 100%; }
 body { background: var(--space); color: var(--ink); font-family: var(--f-body); font-size: 14px; overflow: hidden; }
@@ -35,16 +77,16 @@ body { background: var(--space); color: var(--ink); font-family: var(--f-body); 
 #stage canvas { display: block; touch-action: none; }
 #labels { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
 .lbl { position: absolute; transform: translate(-50%, -140%); font: 500 11.5px/1 var(--f-body); letter-spacing: .03em;
-  color: var(--ink); text-shadow: 0 0 4px #000, 0 0 8px #000; white-space: nowrap; }
+  color: var(--ink); text-shadow: 0 0 4px var(--halo), 0 0 8px var(--halo); white-space: nowrap; }
 .lbl.node { color: var(--node); }
 .lbl.sun { color: var(--corona); }
-.lbl.small { font-size: 10.5px; color: #d8d2bf; transform: translate(6px, -50%); }
+.lbl.small { font-size: 10.5px; color: var(--lbl-small); transform: translate(6px, -50%); }
 
 button, select, input { font: inherit; color: inherit; }
 button { background: var(--glass-2); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; cursor: pointer; }
-button:hover { border-color: rgba(243, 197, 107, .5); }
+button:hover { border-color: var(--accent-edge); }
 button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--corona); outline-offset: 1px; }
-button[aria-pressed="true"] { background: rgba(243, 197, 107, .16); border-color: var(--corona); color: #fff3d6; }
+button[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--corona); color: var(--pressed-ink); }
 
 .brand { position: fixed; top: max(14px, env(safe-area-inset-top, 0px)); left: max(16px, env(safe-area-inset-left, 0px)); max-width: 420px; pointer-events: none; }
 .brand h1 { margin: 0; font: 600 26px/1.1 var(--f-display); letter-spacing: -.01em; text-wrap: balance; }
@@ -68,7 +110,7 @@ button[aria-pressed="true"] { background: rgba(243, 197, 107, .16); border-color
 #statusMain[data-kind="total"] { color: var(--umbra); }
 #statusMain[data-kind="annular"], #statusMain[data-kind="hybrid"] { color: var(--antumbra); }
 #statusMain[data-kind="partial"] { color: var(--penumbra); }
-#statusMain[data-kind="lunar"] { color: #e58b6a; }
+#statusMain[data-kind="lunar"] { color: var(--lunar); }
 .next { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
 .next b { color: var(--ink); font-weight: 500; }
 
@@ -76,11 +118,11 @@ h2 { margin: 0 0 8px; font: 600 15px/1.2 var(--f-display); }
 .checks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
 .checks li { display: grid; grid-template-columns: 14px 1fr; gap: 10px; align-items: start; }
 .dot { width: 12px; height: 12px; border-radius: 50%; margin-top: 3px; border: 2px solid var(--off); }
-li[data-state="ok"] .dot { background: var(--ok); border-color: var(--ok); box-shadow: 0 0 8px rgba(111, 211, 155, .6); }
-li[data-state="near"] .dot { border-color: var(--near); background: rgba(243, 197, 107, .25); }
+li[data-state="ok"] .dot { background: var(--ok); border-color: var(--ok); box-shadow: 0 0 8px var(--ok-glow); }
+li[data-state="near"] .dot { border-color: var(--near); background: var(--accent-soft); }
 li[data-state="off"] .dot { border-color: var(--off); }
 .checks b { font-weight: 600; font-size: 13.5px; }
-.checks .val { display: block; font: 400 12px/1.45 var(--f-mono); color: #cfd5e4; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.checks .val { display: block; font: 400 12px/1.45 var(--f-mono); color: var(--val); margin-top: 2px; font-variant-numeric: tabular-nums; }
 .checks p { margin: 3px 0 0; font-size: 12px; line-height: 1.45; color: var(--muted); }
 
 .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
@@ -88,7 +130,7 @@ li[data-state="off"] .dot { border-color: var(--off); }
 .presets { display: flex; flex-direction: column; gap: 5px; }
 .presets button { display: grid; grid-template-columns: 86px 1fr; gap: 8px; text-align: left; font-size: 12.5px; padding: 6px 9px; }
 .presets .d { font-family: var(--f-mono); font-size: 11.5px; color: var(--corona); }
-.presets .lunar .d { color: #e58b6a; }
+.presets .lunar .d { color: var(--lunar); }
 .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; }
 .seg button { border: 0; border-radius: 0; font-size: 12.5px; }
 .row { display: flex; flex-direction: column; gap: 6px; }
@@ -111,7 +153,7 @@ input[type="checkbox"] { accent-color: var(--corona); }
 .clock .t { color: var(--corona); }
 .clock .ut { font-size: 11px; color: var(--muted); margin-left: 3px; }
 .tgroup { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
-#play { width: 44px; height: 36px; font-size: 15px; background: rgba(243, 197, 107, .18); border-color: var(--corona); }
+#play { width: 44px; height: 36px; font-size: 15px; background: var(--accent-soft); border-color: var(--corona); }
 .tgroup button { font-size: 12.5px; }
 select, input[type="datetime-local"] { background: var(--glass-2); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; font-size: 12.5px; }
 .spacer { flex: 1; }
@@ -192,6 +234,11 @@ select, input[type="datetime-local"] { background: var(--glass-2); border: 1px s
 
     <section class="row">
       <h2>Seaded</h2>
+      <span class="eyebrow">Värviskeem</span>
+      <div class="seg" id="schemeSeg">
+        <button data-scheme="dark" aria-pressed="true">Tume</button>
+        <button data-scheme="light" aria-pressed="false">Hele</button>
+      </div>
       <span class="eyebrow">Taustsüsteem</span>
       <div class="seg" id="frameSeg">
         <button data-frame="sun" aria-pressed="true">Päike paigal</button>
@@ -218,11 +265,11 @@ select, input[type="datetime-local"] { background: var(--glass-2); border: 1px s
         <span><i style="background:var(--penumbra)"></i>Poolvari</span>
         <span><i style="background:var(--umbra)"></i>Täisvari</span>
         <span><i style="background:var(--antumbra)"></i>Antumbra (rõngas)</span>
-        <span><i style="background:#c4554a;opacity:.7"></i>Maa täisvari</span>
+        <span><i style="background:var(--e-umbra)"></i>Maa täisvari</span>
         <span><i style="background:var(--node)"></i>Sõlmede joon</span>
-        <span><i style="background:rgba(243,197,107,.5)"></i>Varjutuste hooaeg</span>
-        <span><i style="background:#8ed8ef"></i>Orbiit ekliptikast põhjas</span>
-        <span><i style="background:#3d6a82"></i>Orbiit ekliptikast lõunas</span>
+        <span><i style="background:var(--season)"></i>Varjutuste hooaeg</span>
+        <span><i style="background:var(--orbit-n)"></i>Orbiit ekliptikast põhjas</span>
+        <span><i style="background:var(--orbit-s)"></i>Orbiit ekliptikast lõunas</span>
       </div>
       <p class="note" style="margin-top:10px">Maal näitavad kontuurid, kui suur osa Päikese läbimõõdust on kaetud (20%, 40%, 60%, 80%). Täisvari on punane ja rõngasvarjutuse ala oranž. Joon on varjutuse keskjoon. Kuu ja Päikese asukoht on arvutatud Meeusi järgi, täpsus umbes 0,01°.</p>
     </section>
@@ -571,6 +618,41 @@ scene.add(root);
 
 const vec = a => new THREE.Vector3(a[0], a[1], a[2]);
 
+// ---------------------------------------------------------------- colour schemes
+// [hex, opacity] for lines and surfaces; plain RGB for vertex and shader colours (shown as given).
+// Dark hex values go through the usual sRGB conversion; light ones are shown exactly as written.
+const THEMES = {
+  dark: {
+    bg: 0x03050a, linearHex: false, stars: true, tartu: 0xffe08a,
+    eclDisc: [0x8aa0c8, 0.045], grid: [0x5a6a8c, 0.35], spokes: [0x5a6a8c, 0.18], ring: [0xf3c56b, 0.55],
+    seasonOuter: [0xf3c56b, 0.16], seasonInner: [0xf3c56b, 0.3], node: [0xc3a3ff, 0.9], sunLine: [0xf3c56b, 0.55],
+    orbitN: [0.56, 0.85, 0.94], orbitS: [0.24, 0.42, 0.51], planeAlpha: 0.12, planeRim: [0x8ed8ef, 0.45], drop: [0x8ed8ef, 0.6],
+    cones: { ePen: [0x8fb3ff, 0.025], eUmb: [0xc4554a, 0.08], mPen: [0x8fb3ff, 0.05], mAnt: [0xffb347, 0.14], mUmb: [0xff6a4a, 0.3] },
+    sun: { additive: true, stops: [[0, 'rgba(255,250,235,1)'], [0.12, 'rgba(255,240,200,1)'], [0.2, 'rgba(255,205,120,0.55)'], [0.5, 'rgba(255,170,80,0.12)'], [1, 'rgba(255,150,60,0)']] },
+  },
+  light: {
+    bg: 0xeef1f6, linearHex: true, stars: false, tartu: 0xc0392b,
+    eclDisc: [0x5a6f9a, 0.07], grid: [0x8592ad, 0.5], spokes: [0x8592ad, 0.3], ring: [0xc98a12, 0.8],
+    seasonOuter: [0xe0a020, 0.2], seasonInner: [0xe0a020, 0.36], node: [0x7a4fd6, 1], sunLine: [0xc98a12, 0.7],
+    orbitN: [0.0, 0.42, 0.58], orbitS: [0.52, 0.69, 0.77], planeAlpha: 0.1, planeRim: [0x1f6f8b, 0.55], drop: [0x006b94, 0.6],
+    cones: { ePen: [0x3b67c4, 0.04], eUmb: [0x9c2f25, 0.1], mPen: [0x3b67c4, 0.07], mAnt: [0xd98a10, 0.2], mUmb: [0xd2401f, 0.35] },
+    sun: { additive: false, stops: [[0, 'rgba(255,236,170,1)'], [0.12, 'rgba(250,190,70,1)'], [0.22, 'rgba(245,160,40,0.5)'], [0.5, 'rgba(240,150,40,0.12)'], [1, 'rgba(240,150,40,0)']] },
+  },
+};
+let TH = THEMES.dark;
+const bgRGB = new THREE.Color();
+const transp = { transparent: true, depthWrite: false };
+const MAT = {
+  eclDisc: new THREE.MeshBasicMaterial({ ...transp, side: THREE.DoubleSide }),
+  grid: new THREE.LineBasicMaterial(transp), spokes: new THREE.LineBasicMaterial(transp), ring: new THREE.LineBasicMaterial(transp),
+  seasonOuter: new THREE.MeshBasicMaterial({ ...transp, side: THREE.DoubleSide }),
+  seasonInner: new THREE.MeshBasicMaterial({ ...transp, side: THREE.DoubleSide }),
+  node: new THREE.LineBasicMaterial(transp), nodeMarker: new THREE.MeshBasicMaterial(),
+  sunLine: new THREE.LineDashedMaterial({ ...transp, dashSize: 0.02, gapSize: 0.015 }),
+  planeRim: new THREE.LineBasicMaterial(transp), drop: new THREE.LineBasicMaterial(transp),
+  tartu: new THREE.MeshBasicMaterial(),
+};
+
 // ---------------------------------------------------------------- shaders
 const OVERLAP_GLSL = `
 float overlap(float r1, float r2, float d) {   // fraction of disc r1 covered by disc r2
@@ -683,7 +765,7 @@ root.add(moon);
 // Tartu marker (Earth-fixed)
 const TARTU = { lat: 58.378 * DEG, lon: 26.729 * DEG };
 const tartuLocal = new THREE.Vector3(Math.cos(TARTU.lat) * Math.cos(TARTU.lon), Math.sin(TARTU.lat), -Math.cos(TARTU.lat) * Math.sin(TARTU.lon));
-const tartuDot = new THREE.Mesh(new THREE.SphereGeometry(0.008, 12, 8), new THREE.MeshBasicMaterial({ color: 0xffe08a }));
+const tartuDot = new THREE.Mesh(new THREE.SphereGeometry(0.008, 12, 8), MAT.tartu);
 tartuDot.position.copy(tartuLocal);
 earth.add(tartuDot);
 
@@ -714,18 +796,19 @@ function setTrack(e) {
 }
 
 // Sun
-function glowTexture() {
+function glowTexture(stops) {
   const c = document.createElement('canvas'); c.width = c.height = 256;
   const g = c.getContext('2d'), gr = g.createRadialGradient(128, 128, 0, 128, 128, 128);
-  gr.addColorStop(0, 'rgba(255,250,235,1)'); gr.addColorStop(0.12, 'rgba(255,240,200,1)');
-  gr.addColorStop(0.2, 'rgba(255,205,120,0.55)'); gr.addColorStop(0.5, 'rgba(255,170,80,0.12)'); gr.addColorStop(1, 'rgba(255,150,60,0)');
+  for (const [o, col] of stops) gr.addColorStop(o, col);
   g.fillStyle = gr; g.fillRect(0, 0, 256, 256);
   return new THREE.CanvasTexture(c);
 }
-const sunSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
+const sunTex = { dark: glowTexture(THEMES.dark.sun.stops), light: glowTexture(THEMES.light.sun.stops) };
+const sunSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: sunTex.dark, depthWrite: false, transparent: true }));
 root.add(sunSprite);
 
 // Stars
+let stars;
 {
   const n = 2600, pos = new Float32Array(n * 3), col = new Float32Array(n * 3);
   for (let i = 0; i < n; i++) {
@@ -737,7 +820,8 @@ root.add(sunSprite);
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   g.setAttribute('color', new THREE.BufferAttribute(col, 3));
-  root.add(new THREE.Points(g, new THREE.PointsMaterial({ size: 1.6, sizeAttenuation: false, vertexColors: true })));
+  stars = new THREE.Points(g, new THREE.PointsMaterial({ size: 1.6, sizeAttenuation: false, vertexColors: true }));
+  root.add(stars);
 }
 
 // ---------------------------------------------------------------- ecliptic, nodes, seasons
@@ -745,40 +829,35 @@ const ecl = new THREE.Group();     // unit radius, scaled to the Sun-ring radius
 root.add(ecl);
 const flat = g => { g.rotateX(-Math.PI / 2); return g; };
 ecl.add(new THREE.Mesh(flat(new THREE.CircleGeometry(1, 160)),
-  new THREE.MeshBasicMaterial({ color: 0x8aa0c8, transparent: true, opacity: 0.045, side: THREE.DoubleSide, depthWrite: false })));
+  MAT.eclDisc));
 function circlePts(r, n = 256) { const p = []; for (let i = 0; i <= n; i++) { const a = i / n * Math.PI * 2; p.push(new THREE.Vector3(r * Math.cos(a), 0, -r * Math.sin(a))); } return p; }
 {
-  const faint = new THREE.LineBasicMaterial({ color: 0x5a6a8c, transparent: true, opacity: 0.35 });
-  for (const r of [0.25, 0.5, 0.75]) ecl.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(circlePts(r)), faint));
+  for (const r of [0.25, 0.5, 0.75]) ecl.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(circlePts(r)), MAT.grid));
   const spokes = [];
   for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6; spokes.push(new THREE.Vector3(0.12 * Math.cos(a), 0, -0.12 * Math.sin(a)), new THREE.Vector3(Math.cos(a), 0, -Math.sin(a))); }
-  ecl.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(spokes), new THREE.LineBasicMaterial({ color: 0x5a6a8c, transparent: true, opacity: 0.18 })));
-  ecl.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(circlePts(1)), new THREE.LineBasicMaterial({ color: 0xf3c56b, transparent: true, opacity: 0.55 })));
+  ecl.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(spokes), MAT.spokes));
+  ecl.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(circlePts(1)), MAT.ring));
 }
 const nodes = new THREE.Group();   // rotated to the ascending node
 ecl.add(nodes);
 {
-  const arc = (half, inner, op) => {
-    for (const c of [0, Math.PI]) {
-      const m = new THREE.Mesh(flat(new THREE.RingGeometry(inner, 1.0, 48, 1, c - half, 2 * half)),
-        new THREE.MeshBasicMaterial({ color: 0xf3c56b, transparent: true, opacity: op, side: THREE.DoubleSide, depthWrite: false }));
-      nodes.add(m);
-    }
+  const arc = (half, inner, mat) => {
+    for (const c of [0, Math.PI]) nodes.add(new THREE.Mesh(flat(new THREE.RingGeometry(inner, 1.0, 48, 1, c - half, 2 * half)), mat));
   };
-  arc(18.5 * DEG, 0.9, 0.16);
-  arc(10.5 * DEG, 0.9, 0.3);
+  arc(18.5 * DEG, 0.9, MAT.seasonOuter);
+  arc(10.5 * DEG, 0.9, MAT.seasonInner);
   const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-1.04, 0, 0), new THREE.Vector3(1.04, 0, 0)]),
-    new THREE.LineBasicMaterial({ color: 0xc3a3ff, transparent: true, opacity: 0.9 }));
+    MAT.node);
   nodes.add(line);
 }
 const nodeMarkers = [0, 1].map(i => {
-  const m = new THREE.Mesh(new THREE.OctahedronGeometry(0.35, 0), new THREE.MeshBasicMaterial({ color: 0xc3a3ff }));
+  const m = new THREE.Mesh(new THREE.OctahedronGeometry(0.35, 0), MAT.nodeMarker);
   root.add(m); return m;
 });
 
 // Sun line
 const sunLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3(1, 0, 0)]),
-  new THREE.LineDashedMaterial({ color: 0xf3c56b, dashSize: 0.02, gapSize: 0.015, transparent: true, opacity: 0.55 }));
+  MAT.sunLine);
 sunLine.computeLineDistances();
 root.add(sunLine);
 
@@ -791,18 +870,19 @@ const trail = new THREE.Line(trailGeo, new THREE.LineBasicMaterial({ vertexColor
 trail.frustumCulled = false;
 root.add(trail);
 // Moon's orbital plane, coloured north/south of the ecliptic like the trail
-const orbitPlane = new THREE.Mesh(flat(new THREE.CircleGeometry(1, 160)), new THREE.ShaderMaterial({
+const planeMat = new THREE.ShaderMaterial({
+  uniforms: { uN: { value: new THREE.Vector4() }, uS: { value: new THREE.Vector4() } },
   vertexShader: `varying float vY;
     void main() { vec4 w = modelMatrix * vec4(position, 1.0); vY = w.y; gl_Position = projectionMatrix * viewMatrix * w; }`,
-  fragmentShader: `varying float vY;
-    void main() { gl_FragColor = vY >= 0.0 ? vec4(0.56, 0.85, 0.94, 0.12) : vec4(0.24, 0.42, 0.51, 0.12); }`,
+  fragmentShader: `uniform vec4 uN, uS; varying float vY;
+    void main() { gl_FragColor = vY >= 0.0 ? uN : uS; }`,
   transparent: true, depthWrite: false, side: THREE.DoubleSide,
-}));
-orbitPlane.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(circlePts(1)),
-  new THREE.LineBasicMaterial({ color: 0x8ed8ef, transparent: true, opacity: 0.45 })));
+});
+const orbitPlane = new THREE.Mesh(flat(new THREE.CircleGeometry(1, 160)), planeMat);
+orbitPlane.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(circlePts(1)), MAT.planeRim));
 root.add(orbitPlane);
 const dropGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]);
-const dropLine = new THREE.Line(dropGeo, new THREE.LineBasicMaterial({ color: 0x8ed8ef, transparent: true, opacity: 0.6 }));
+const dropLine = new THREE.Line(dropGeo, MAT.drop);
 dropLine.frustumCulled = false;
 root.add(dropLine);
 
@@ -865,6 +945,33 @@ const cones = {
 // Shadow cones point straight along the sunlight from the displayed body, with real radii at
 // real distance t drawn at k·t. With compressed distance the cone therefore meets Earth (or the
 // Moon) at k times the true offset; the shading on the bodies is always computed from real geometry.
+
+// ---------------------------------------------------------------- applying a colour scheme
+const SCHEME_KEY = 'varjutuste-mudel-scheme';
+function applyScheme(name) {
+  if (!THEMES[name]) name = 'dark';
+  TH = THEMES[name];
+  const space = TH.linearHex ? THREE.LinearSRGBColorSpace : THREE.SRGBColorSpace;
+  const paint = (m, [hex, op]) => { m.color.setHex(hex, space); m.opacity = op; };
+  scene.background.setHex(TH.bg, space);
+  bgRGB.setHex(TH.bg, space);
+  stars.visible = TH.stars;
+  for (const k of ['eclDisc', 'grid', 'spokes', 'ring', 'seasonOuter', 'seasonInner', 'node', 'sunLine', 'planeRim', 'drop']) paint(MAT[k], TH[k]);
+  MAT.nodeMarker.color.setHex(TH.node[0], space);
+  MAT.tartu.color.setHex(TH.tartu, space);
+  planeMat.uniforms.uN.value.set(...TH.orbitN, TH.planeAlpha);
+  planeMat.uniforms.uS.value.set(...TH.orbitS, TH.planeAlpha);
+  for (const [k, [hex, alpha]] of Object.entries(TH.cones)) {
+    const u = cones[k].mesh.material.uniforms;
+    u.uColor.value.setHex(hex, space); u.uAlpha.value = alpha;
+  }
+  sunSprite.material.map = sunTex[name];
+  sunSprite.material.blending = TH.sun.additive ? THREE.AdditiveBlending : THREE.NormalBlending;
+  sunSprite.material.needsUpdate = true;
+  document.documentElement.dataset.scheme = name;
+  document.querySelectorAll('#schemeSeg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.scheme === name)));
+  try { localStorage.setItem(SCHEME_KEY, name); } catch (e) { /* storage unavailable */ }
+}
 
 // ---------------------------------------------------------------- labels
 const labelsEl = document.getElementById('labels');
@@ -1072,7 +1179,8 @@ function update(now) {
       const p = eclVec(m.lon, m.lat, m.distKm / RE_KM * k);
       P.set(p, i * 3);
       const fade = 0.35 + 0.65 * (1 - Math.abs(i - (TRAIL_N - 1) / 2) / ((TRAIL_N - 1) / 2));
-      if (m.lat >= 0) C.set([0.56 * fade, 0.85 * fade, 0.94 * fade], i * 3); else C.set([0.24 * fade, 0.42 * fade, 0.51 * fade], i * 3);
+      const oc = m.lat >= 0 ? TH.orbitN : TH.orbitS;
+      C.set([bgRGB.r + (oc[0] - bgRGB.r) * fade, bgRGB.g + (oc[1] - bgRGB.g) * fade, bgRGB.b + (oc[2] - bgRGB.b) * fade], i * 3);
     }
     trailGeo.attributes.position.needsUpdate = true; trailGeo.attributes.color.needsUpdate = true;
     const dp = dropGeo.attributes.position.array;
@@ -1175,6 +1283,7 @@ document.querySelectorAll('#frameSeg button').forEach(b => b.onclick = () => {
   S.frame = b.dataset.frame;
   document.querySelectorAll('#frameSeg button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
 });
+document.querySelectorAll('#schemeSeg button').forEach(b => b.onclick = () => applyScheme(b.dataset.scheme));
 $('dist').oninput = ev => { S.Dd = parseFloat(ev.target.value); lastPanel = 0; if (S.view) S.tracking = true; };
 const tog = (id, key) => { $(id).onchange = ev => { S.show[key] = ev.target.checked; }; };
 tog('tCones', 'cones'); tog('tOrbit', 'orbit'); tog('tPlane', 'plane'); tog('tNodes', 'nodes'); tog('tHi', 'hi'); tog('tLabels', 'labels'); tog('tEarthSh', 'earthSh');
@@ -1233,6 +1342,7 @@ for (const [kind, [y, m, d, h], ds, text] of PRESETS) {
 const startE = solarEclipseAt(findPhase(jdFromMs(Date.UTC(2026, 7, 12, 18)), 0, 0));
 S.jd = startE.jd;
 $('dist').value = S.Dd;
+{ let saved = null; try { saved = localStorage.getItem(SCHEME_KEY); } catch (e) { /* storage unavailable */ } applyScheme(saved || 'dark'); }
 layout();
 { const pose = viewPose('overview', stateAt(S.jd)); camera.position.copy(pose.pos); controls.target.copy(pose.tgt); }
 markView('overview');

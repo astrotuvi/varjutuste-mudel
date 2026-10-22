@@ -36,6 +36,41 @@ scene.add(root);
 
 const vec = a => new THREE.Vector3(a[0], a[1], a[2]);
 
+// ---------------------------------------------------------------- colour schemes
+// [hex, opacity] for lines and surfaces; plain RGB for vertex and shader colours (shown as given).
+// Dark hex values go through the usual sRGB conversion; light ones are shown exactly as written.
+const THEMES = {
+  dark: {
+    bg: 0x03050a, linearHex: false, stars: true, tartu: 0xffe08a,
+    eclDisc: [0x8aa0c8, 0.045], grid: [0x5a6a8c, 0.35], spokes: [0x5a6a8c, 0.18], ring: [0xf3c56b, 0.55],
+    seasonOuter: [0xf3c56b, 0.16], seasonInner: [0xf3c56b, 0.3], node: [0xc3a3ff, 0.9], sunLine: [0xf3c56b, 0.55],
+    orbitN: [0.56, 0.85, 0.94], orbitS: [0.24, 0.42, 0.51], planeAlpha: 0.12, planeRim: [0x8ed8ef, 0.45], drop: [0x8ed8ef, 0.6],
+    cones: { ePen: [0x8fb3ff, 0.025], eUmb: [0xc4554a, 0.08], mPen: [0x8fb3ff, 0.05], mAnt: [0xffb347, 0.14], mUmb: [0xff6a4a, 0.3] },
+    sun: { additive: true, stops: [[0, 'rgba(255,250,235,1)'], [0.12, 'rgba(255,240,200,1)'], [0.2, 'rgba(255,205,120,0.55)'], [0.5, 'rgba(255,170,80,0.12)'], [1, 'rgba(255,150,60,0)']] },
+  },
+  light: {
+    bg: 0xeef1f6, linearHex: true, stars: false, tartu: 0xc0392b,
+    eclDisc: [0x5a6f9a, 0.07], grid: [0x8592ad, 0.5], spokes: [0x8592ad, 0.3], ring: [0xc98a12, 0.8],
+    seasonOuter: [0xe0a020, 0.2], seasonInner: [0xe0a020, 0.36], node: [0x7a4fd6, 1], sunLine: [0xc98a12, 0.7],
+    orbitN: [0.0, 0.42, 0.58], orbitS: [0.52, 0.69, 0.77], planeAlpha: 0.1, planeRim: [0x1f6f8b, 0.55], drop: [0x006b94, 0.6],
+    cones: { ePen: [0x3b67c4, 0.04], eUmb: [0x9c2f25, 0.1], mPen: [0x3b67c4, 0.07], mAnt: [0xd98a10, 0.2], mUmb: [0xd2401f, 0.35] },
+    sun: { additive: false, stops: [[0, 'rgba(255,236,170,1)'], [0.12, 'rgba(250,190,70,1)'], [0.22, 'rgba(245,160,40,0.5)'], [0.5, 'rgba(240,150,40,0.12)'], [1, 'rgba(240,150,40,0)']] },
+  },
+};
+let TH = THEMES.dark;
+const bgRGB = new THREE.Color();
+const transp = { transparent: true, depthWrite: false };
+const MAT = {
+  eclDisc: new THREE.MeshBasicMaterial({ ...transp, side: THREE.DoubleSide }),
+  grid: new THREE.LineBasicMaterial(transp), spokes: new THREE.LineBasicMaterial(transp), ring: new THREE.LineBasicMaterial(transp),
+  seasonOuter: new THREE.MeshBasicMaterial({ ...transp, side: THREE.DoubleSide }),
+  seasonInner: new THREE.MeshBasicMaterial({ ...transp, side: THREE.DoubleSide }),
+  node: new THREE.LineBasicMaterial(transp), nodeMarker: new THREE.MeshBasicMaterial(),
+  sunLine: new THREE.LineDashedMaterial({ ...transp, dashSize: 0.02, gapSize: 0.015 }),
+  planeRim: new THREE.LineBasicMaterial(transp), drop: new THREE.LineBasicMaterial(transp),
+  tartu: new THREE.MeshBasicMaterial(),
+};
+
 // ---------------------------------------------------------------- shaders
 const OVERLAP_GLSL = `
 float overlap(float r1, float r2, float d) {   // fraction of disc r1 covered by disc r2
@@ -148,7 +183,7 @@ root.add(moon);
 // Tartu marker (Earth-fixed)
 const TARTU = { lat: 58.378 * DEG, lon: 26.729 * DEG };
 const tartuLocal = new THREE.Vector3(Math.cos(TARTU.lat) * Math.cos(TARTU.lon), Math.sin(TARTU.lat), -Math.cos(TARTU.lat) * Math.sin(TARTU.lon));
-const tartuDot = new THREE.Mesh(new THREE.SphereGeometry(0.008, 12, 8), new THREE.MeshBasicMaterial({ color: 0xffe08a }));
+const tartuDot = new THREE.Mesh(new THREE.SphereGeometry(0.008, 12, 8), MAT.tartu);
 tartuDot.position.copy(tartuLocal);
 earth.add(tartuDot);
 
@@ -179,18 +214,19 @@ function setTrack(e) {
 }
 
 // Sun
-function glowTexture() {
+function glowTexture(stops) {
   const c = document.createElement('canvas'); c.width = c.height = 256;
   const g = c.getContext('2d'), gr = g.createRadialGradient(128, 128, 0, 128, 128, 128);
-  gr.addColorStop(0, 'rgba(255,250,235,1)'); gr.addColorStop(0.12, 'rgba(255,240,200,1)');
-  gr.addColorStop(0.2, 'rgba(255,205,120,0.55)'); gr.addColorStop(0.5, 'rgba(255,170,80,0.12)'); gr.addColorStop(1, 'rgba(255,150,60,0)');
+  for (const [o, col] of stops) gr.addColorStop(o, col);
   g.fillStyle = gr; g.fillRect(0, 0, 256, 256);
   return new THREE.CanvasTexture(c);
 }
-const sunSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
+const sunTex = { dark: glowTexture(THEMES.dark.sun.stops), light: glowTexture(THEMES.light.sun.stops) };
+const sunSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: sunTex.dark, depthWrite: false, transparent: true }));
 root.add(sunSprite);
 
 // Stars
+let stars;
 {
   const n = 2600, pos = new Float32Array(n * 3), col = new Float32Array(n * 3);
   for (let i = 0; i < n; i++) {
@@ -202,7 +238,8 @@ root.add(sunSprite);
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   g.setAttribute('color', new THREE.BufferAttribute(col, 3));
-  root.add(new THREE.Points(g, new THREE.PointsMaterial({ size: 1.6, sizeAttenuation: false, vertexColors: true })));
+  stars = new THREE.Points(g, new THREE.PointsMaterial({ size: 1.6, sizeAttenuation: false, vertexColors: true }));
+  root.add(stars);
 }
 
 // ---------------------------------------------------------------- ecliptic, nodes, seasons
@@ -210,40 +247,35 @@ const ecl = new THREE.Group();     // unit radius, scaled to the Sun-ring radius
 root.add(ecl);
 const flat = g => { g.rotateX(-Math.PI / 2); return g; };
 ecl.add(new THREE.Mesh(flat(new THREE.CircleGeometry(1, 160)),
-  new THREE.MeshBasicMaterial({ color: 0x8aa0c8, transparent: true, opacity: 0.045, side: THREE.DoubleSide, depthWrite: false })));
+  MAT.eclDisc));
 function circlePts(r, n = 256) { const p = []; for (let i = 0; i <= n; i++) { const a = i / n * Math.PI * 2; p.push(new THREE.Vector3(r * Math.cos(a), 0, -r * Math.sin(a))); } return p; }
 {
-  const faint = new THREE.LineBasicMaterial({ color: 0x5a6a8c, transparent: true, opacity: 0.35 });
-  for (const r of [0.25, 0.5, 0.75]) ecl.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(circlePts(r)), faint));
+  for (const r of [0.25, 0.5, 0.75]) ecl.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(circlePts(r)), MAT.grid));
   const spokes = [];
   for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6; spokes.push(new THREE.Vector3(0.12 * Math.cos(a), 0, -0.12 * Math.sin(a)), new THREE.Vector3(Math.cos(a), 0, -Math.sin(a))); }
-  ecl.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(spokes), new THREE.LineBasicMaterial({ color: 0x5a6a8c, transparent: true, opacity: 0.18 })));
-  ecl.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(circlePts(1)), new THREE.LineBasicMaterial({ color: 0xf3c56b, transparent: true, opacity: 0.55 })));
+  ecl.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(spokes), MAT.spokes));
+  ecl.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(circlePts(1)), MAT.ring));
 }
 const nodes = new THREE.Group();   // rotated to the ascending node
 ecl.add(nodes);
 {
-  const arc = (half, inner, op) => {
-    for (const c of [0, Math.PI]) {
-      const m = new THREE.Mesh(flat(new THREE.RingGeometry(inner, 1.0, 48, 1, c - half, 2 * half)),
-        new THREE.MeshBasicMaterial({ color: 0xf3c56b, transparent: true, opacity: op, side: THREE.DoubleSide, depthWrite: false }));
-      nodes.add(m);
-    }
+  const arc = (half, inner, mat) => {
+    for (const c of [0, Math.PI]) nodes.add(new THREE.Mesh(flat(new THREE.RingGeometry(inner, 1.0, 48, 1, c - half, 2 * half)), mat));
   };
-  arc(18.5 * DEG, 0.9, 0.16);
-  arc(10.5 * DEG, 0.9, 0.3);
+  arc(18.5 * DEG, 0.9, MAT.seasonOuter);
+  arc(10.5 * DEG, 0.9, MAT.seasonInner);
   const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-1.04, 0, 0), new THREE.Vector3(1.04, 0, 0)]),
-    new THREE.LineBasicMaterial({ color: 0xc3a3ff, transparent: true, opacity: 0.9 }));
+    MAT.node);
   nodes.add(line);
 }
 const nodeMarkers = [0, 1].map(i => {
-  const m = new THREE.Mesh(new THREE.OctahedronGeometry(0.35, 0), new THREE.MeshBasicMaterial({ color: 0xc3a3ff }));
+  const m = new THREE.Mesh(new THREE.OctahedronGeometry(0.35, 0), MAT.nodeMarker);
   root.add(m); return m;
 });
 
 // Sun line
 const sunLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3(1, 0, 0)]),
-  new THREE.LineDashedMaterial({ color: 0xf3c56b, dashSize: 0.02, gapSize: 0.015, transparent: true, opacity: 0.55 }));
+  MAT.sunLine);
 sunLine.computeLineDistances();
 root.add(sunLine);
 
@@ -256,18 +288,19 @@ const trail = new THREE.Line(trailGeo, new THREE.LineBasicMaterial({ vertexColor
 trail.frustumCulled = false;
 root.add(trail);
 // Moon's orbital plane, coloured north/south of the ecliptic like the trail
-const orbitPlane = new THREE.Mesh(flat(new THREE.CircleGeometry(1, 160)), new THREE.ShaderMaterial({
+const planeMat = new THREE.ShaderMaterial({
+  uniforms: { uN: { value: new THREE.Vector4() }, uS: { value: new THREE.Vector4() } },
   vertexShader: `varying float vY;
     void main() { vec4 w = modelMatrix * vec4(position, 1.0); vY = w.y; gl_Position = projectionMatrix * viewMatrix * w; }`,
-  fragmentShader: `varying float vY;
-    void main() { gl_FragColor = vY >= 0.0 ? vec4(0.56, 0.85, 0.94, 0.12) : vec4(0.24, 0.42, 0.51, 0.12); }`,
+  fragmentShader: `uniform vec4 uN, uS; varying float vY;
+    void main() { gl_FragColor = vY >= 0.0 ? uN : uS; }`,
   transparent: true, depthWrite: false, side: THREE.DoubleSide,
-}));
-orbitPlane.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(circlePts(1)),
-  new THREE.LineBasicMaterial({ color: 0x8ed8ef, transparent: true, opacity: 0.45 })));
+});
+const orbitPlane = new THREE.Mesh(flat(new THREE.CircleGeometry(1, 160)), planeMat);
+orbitPlane.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(circlePts(1)), MAT.planeRim));
 root.add(orbitPlane);
 const dropGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]);
-const dropLine = new THREE.Line(dropGeo, new THREE.LineBasicMaterial({ color: 0x8ed8ef, transparent: true, opacity: 0.6 }));
+const dropLine = new THREE.Line(dropGeo, MAT.drop);
 dropLine.frustumCulled = false;
 root.add(dropLine);
 
@@ -330,6 +363,33 @@ const cones = {
 // Shadow cones point straight along the sunlight from the displayed body, with real radii at
 // real distance t drawn at k·t. With compressed distance the cone therefore meets Earth (or the
 // Moon) at k times the true offset; the shading on the bodies is always computed from real geometry.
+
+// ---------------------------------------------------------------- applying a colour scheme
+const SCHEME_KEY = 'varjutuste-mudel-scheme';
+function applyScheme(name) {
+  if (!THEMES[name]) name = 'dark';
+  TH = THEMES[name];
+  const space = TH.linearHex ? THREE.LinearSRGBColorSpace : THREE.SRGBColorSpace;
+  const paint = (m, [hex, op]) => { m.color.setHex(hex, space); m.opacity = op; };
+  scene.background.setHex(TH.bg, space);
+  bgRGB.setHex(TH.bg, space);
+  stars.visible = TH.stars;
+  for (const k of ['eclDisc', 'grid', 'spokes', 'ring', 'seasonOuter', 'seasonInner', 'node', 'sunLine', 'planeRim', 'drop']) paint(MAT[k], TH[k]);
+  MAT.nodeMarker.color.setHex(TH.node[0], space);
+  MAT.tartu.color.setHex(TH.tartu, space);
+  planeMat.uniforms.uN.value.set(...TH.orbitN, TH.planeAlpha);
+  planeMat.uniforms.uS.value.set(...TH.orbitS, TH.planeAlpha);
+  for (const [k, [hex, alpha]] of Object.entries(TH.cones)) {
+    const u = cones[k].mesh.material.uniforms;
+    u.uColor.value.setHex(hex, space); u.uAlpha.value = alpha;
+  }
+  sunSprite.material.map = sunTex[name];
+  sunSprite.material.blending = TH.sun.additive ? THREE.AdditiveBlending : THREE.NormalBlending;
+  sunSprite.material.needsUpdate = true;
+  document.documentElement.dataset.scheme = name;
+  document.querySelectorAll('#schemeSeg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.scheme === name)));
+  try { localStorage.setItem(SCHEME_KEY, name); } catch (e) { /* storage unavailable */ }
+}
 
 // ---------------------------------------------------------------- labels
 const labelsEl = document.getElementById('labels');
@@ -537,7 +597,8 @@ function update(now) {
       const p = eclVec(m.lon, m.lat, m.distKm / RE_KM * k);
       P.set(p, i * 3);
       const fade = 0.35 + 0.65 * (1 - Math.abs(i - (TRAIL_N - 1) / 2) / ((TRAIL_N - 1) / 2));
-      if (m.lat >= 0) C.set([0.56 * fade, 0.85 * fade, 0.94 * fade], i * 3); else C.set([0.24 * fade, 0.42 * fade, 0.51 * fade], i * 3);
+      const oc = m.lat >= 0 ? TH.orbitN : TH.orbitS;
+      C.set([bgRGB.r + (oc[0] - bgRGB.r) * fade, bgRGB.g + (oc[1] - bgRGB.g) * fade, bgRGB.b + (oc[2] - bgRGB.b) * fade], i * 3);
     }
     trailGeo.attributes.position.needsUpdate = true; trailGeo.attributes.color.needsUpdate = true;
     const dp = dropGeo.attributes.position.array;
@@ -640,6 +701,7 @@ document.querySelectorAll('#frameSeg button').forEach(b => b.onclick = () => {
   S.frame = b.dataset.frame;
   document.querySelectorAll('#frameSeg button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
 });
+document.querySelectorAll('#schemeSeg button').forEach(b => b.onclick = () => applyScheme(b.dataset.scheme));
 $('dist').oninput = ev => { S.Dd = parseFloat(ev.target.value); lastPanel = 0; if (S.view) S.tracking = true; };
 const tog = (id, key) => { $(id).onchange = ev => { S.show[key] = ev.target.checked; }; };
 tog('tCones', 'cones'); tog('tOrbit', 'orbit'); tog('tPlane', 'plane'); tog('tNodes', 'nodes'); tog('tHi', 'hi'); tog('tLabels', 'labels'); tog('tEarthSh', 'earthSh');
@@ -698,6 +760,7 @@ for (const [kind, [y, m, d, h], ds, text] of PRESETS) {
 const startE = solarEclipseAt(findPhase(jdFromMs(Date.UTC(2026, 7, 12, 18)), 0, 0));
 S.jd = startE.jd;
 $('dist').value = S.Dd;
+{ let saved = null; try { saved = localStorage.getItem(SCHEME_KEY); } catch (e) { /* storage unavailable */ } applyScheme(saved || 'dark'); }
 layout();
 { const pose = viewPose('overview', stateAt(S.jd)); camera.position.copy(pose.pos); controls.target.copy(pose.tgt); }
 markView('overview');
