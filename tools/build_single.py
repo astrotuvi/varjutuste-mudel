@@ -4,7 +4,7 @@ Inlines style.css, js/ephem.js, js/app.js and the Earth texture, and loads
 three.js from the jsDelivr CDN instead of js/vendor (so the file opens without
 a local web server, but needs internet).
 
-Usage:  python build_single.py [output.html]   (default: ../../varjutuste_mudel.html)
+Usage:  python build_single.py [output.html]   (default: ../varjutuste_mudel.html)
 """
 import base64
 import os
@@ -12,7 +12,7 @@ import re
 import sys
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
-OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "..", "varjutuste_mudel.html")
+OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "varjutuste_mudel.html")
 CDN = "https://cdn.jsdelivr.net/npm/three@0.160.0/"
 
 
