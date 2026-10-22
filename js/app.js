@@ -694,7 +694,16 @@ $('nextNM').onclick = () => jumpTo(findPhase(S.jd, 0, 1));
 $('prevNM').onclick = () => jumpTo(findPhase(S.jd, 0, -1));
 $('nextEcl').onclick = () => { const e = findSolarEclipse(S.jd, 1); if (e) jumpTo(e.jd); };
 $('prevEcl').onclick = () => { const e = findSolarEclipse(S.jd, -1); if (e) jumpTo(e.jd); };
-$('speed').onchange = ev => { S.speed = parseFloat(ev.target.value); };
+function setSpeedIndex(i) {
+  const sel = $('speed');
+  sel.selectedIndex = Math.min(sel.options.length - 1, Math.max(0, i));
+  S.speed = parseFloat(sel.value);
+  $('slower').disabled = sel.selectedIndex === 0;
+  $('faster').disabled = sel.selectedIndex === sel.options.length - 1;
+}
+$('speed').onchange = () => setSpeedIndex($('speed').selectedIndex);
+$('slower').onclick = () => setSpeedIndex($('speed').selectedIndex - 1);
+$('faster').onclick = () => setSpeedIndex($('speed').selectedIndex + 1);
 $('dtInput').onchange = ev => { const t = Date.parse(ev.target.value + ':00Z'); if (!isNaN(t)) jumpTo(jdFromMs(t)); };
 document.querySelectorAll('#views button').forEach(b => b.onclick = () => setView(b.dataset.view));
 document.querySelectorAll('#frameSeg button').forEach(b => b.onclick = () => {
@@ -727,6 +736,8 @@ addEventListener('keydown', ev => {
   if (ev.code === 'Space') { ev.preventDefault(); setPlaying(!S.playing); }
   else if (ev.key === 'ArrowRight') { S.jd += S.speed; lastPanel = 0; }
   else if (ev.key === 'ArrowLeft') { S.jd -= S.speed; lastPanel = 0; }
+  else if (ev.key === '[') setSpeedIndex($('speed').selectedIndex - 1);
+  else if (ev.key === ']') setSpeedIndex($('speed').selectedIndex + 1);
   else if (ev.key === '+' || ev.key === '=') zoomBy(0.75);
   else if (ev.key === '-' || ev.key === '−') zoomBy(1 / 0.75);
 });
@@ -760,6 +771,7 @@ for (const [kind, [y, m, d, h], ds, text] of PRESETS) {
 const startE = solarEclipseAt(findPhase(jdFromMs(Date.UTC(2026, 7, 12, 18)), 0, 0));
 S.jd = startE.jd;
 $('dist').value = S.Dd;
+setSpeedIndex($('speed').selectedIndex);
 { let saved = null; try { saved = localStorage.getItem(SCHEME_KEY); } catch (e) { /* storage unavailable */ } applyScheme(saved || 'dark'); }
 layout();
 { const pose = viewPose('overview', stateAt(S.jd)); camera.position.copy(pose.pos); controls.target.copy(pose.tgt); }

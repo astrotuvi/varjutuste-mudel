@@ -75,6 +75,7 @@ body { background: var(--space); color: var(--ink); font-family: var(--f-body); 
 button, select, input { font: inherit; color: inherit; }
 button { background: var(--glass-2); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; cursor: pointer; }
 button:hover { border-color: var(--accent-edge); }
+button:disabled { opacity: .4; cursor: default; border-color: var(--line); }
 button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--corona); outline-offset: 1px; }
 button[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--corona); color: var(--pressed-ink); }
 

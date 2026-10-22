@@ -85,6 +85,7 @@ body { background: var(--space); color: var(--ink); font-family: var(--f-body); 
 button, select, input { font: inherit; color: inherit; }
 button { background: var(--glass-2); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; cursor: pointer; }
 button:hover { border-color: var(--accent-edge); }
+button:disabled { opacity: .4; cursor: default; border-color: var(--line); }
 button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--corona); outline-offset: 1px; }
 button[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--corona); color: var(--pressed-ink); }
 
@@ -290,6 +291,7 @@ select, input[type="datetime-local"] { background: var(--glass-2); border: 1px s
   <div class="spacer"></div>
   <div class="tgroup">
     <label for="speed" class="eyebrow hide-narrow">Kiirus</label>
+    <button id="slower" title="Aeglasemalt ([)" aria-label="Aeglasemalt">«</button>
     <select id="speed">
       <option value="0.000694444">1 min/s</option>
       <option value="0.00694444" selected>10 min/s</option>
@@ -300,6 +302,7 @@ select, input[type="datetime-local"] { background: var(--glass-2); border: 1px s
       <option value="29.53">1 kuu/s</option>
       <option value="91.3">3 kuud/s</option>
     </select>
+    <button id="faster" title="Kiiremini (])" aria-label="Kiiremini">»</button>
     <input type="datetime-local" id="dtInput" step="60" aria-label="Kuupäev ja kellaaeg (UT)">
   </div>
 </footer>
@@ -1276,7 +1279,16 @@ $('nextNM').onclick = () => jumpTo(findPhase(S.jd, 0, 1));
 $('prevNM').onclick = () => jumpTo(findPhase(S.jd, 0, -1));
 $('nextEcl').onclick = () => { const e = findSolarEclipse(S.jd, 1); if (e) jumpTo(e.jd); };
 $('prevEcl').onclick = () => { const e = findSolarEclipse(S.jd, -1); if (e) jumpTo(e.jd); };
-$('speed').onchange = ev => { S.speed = parseFloat(ev.target.value); };
+function setSpeedIndex(i) {
+  const sel = $('speed');
+  sel.selectedIndex = Math.min(sel.options.length - 1, Math.max(0, i));
+  S.speed = parseFloat(sel.value);
+  $('slower').disabled = sel.selectedIndex === 0;
+  $('faster').disabled = sel.selectedIndex === sel.options.length - 1;
+}
+$('speed').onchange = () => setSpeedIndex($('speed').selectedIndex);
+$('slower').onclick = () => setSpeedIndex($('speed').selectedIndex - 1);
+$('faster').onclick = () => setSpeedIndex($('speed').selectedIndex + 1);
 $('dtInput').onchange = ev => { const t = Date.parse(ev.target.value + ':00Z'); if (!isNaN(t)) jumpTo(jdFromMs(t)); };
 document.querySelectorAll('#views button').forEach(b => b.onclick = () => setView(b.dataset.view));
 document.querySelectorAll('#frameSeg button').forEach(b => b.onclick = () => {
@@ -1309,6 +1321,8 @@ addEventListener('keydown', ev => {
   if (ev.code === 'Space') { ev.preventDefault(); setPlaying(!S.playing); }
   else if (ev.key === 'ArrowRight') { S.jd += S.speed; lastPanel = 0; }
   else if (ev.key === 'ArrowLeft') { S.jd -= S.speed; lastPanel = 0; }
+  else if (ev.key === '[') setSpeedIndex($('speed').selectedIndex - 1);
+  else if (ev.key === ']') setSpeedIndex($('speed').selectedIndex + 1);
   else if (ev.key === '+' || ev.key === '=') zoomBy(0.75);
   else if (ev.key === '-' || ev.key === '−') zoomBy(1 / 0.75);
 });
@@ -1342,6 +1356,7 @@ for (const [kind, [y, m, d, h], ds, text] of PRESETS) {
 const startE = solarEclipseAt(findPhase(jdFromMs(Date.UTC(2026, 7, 12, 18)), 0, 0));
 S.jd = startE.jd;
 $('dist').value = S.Dd;
+setSpeedIndex($('speed').selectedIndex);
 { let saved = null; try { saved = localStorage.getItem(SCHEME_KEY); } catch (e) { /* storage unavailable */ } applyScheme(saved || 'dark'); }
 layout();
 { const pose = viewPose('overview', stateAt(S.jd)); camera.position.copy(pose.pos); controls.target.copy(pose.tgt); }
