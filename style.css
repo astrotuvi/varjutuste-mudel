@@ -97,12 +97,12 @@ button[aria-pressed="true"] { background: var(--accent-soft); border-color: var(
 .pscroll { overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 18px; }
 .status { display: flex; flex-direction: column; gap: 6px; }
 .eyebrow { font: 500 10.5px/1 var(--f-body); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
-#statusMain { font: 600 20px/1.2 var(--f-display); text-wrap: balance; }
+#statusMain { font: 600 20px/1.2 var(--f-display); text-wrap: balance; min-height: 2.4em; }   /* room for two lines, so the panel does not jump */
 #statusMain[data-kind="total"] { color: var(--umbra); }
 #statusMain[data-kind="annular"], #statusMain[data-kind="hybrid"] { color: var(--antumbra); }
 #statusMain[data-kind="partial"] { color: var(--penumbra); }
 #statusMain[data-kind="lunar"] { color: var(--lunar); }
-.next { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+.next { font-size: 12.5px; color: var(--muted); line-height: 1.5; min-height: 3em; }
 .next b { color: var(--ink); font-weight: 500; }
 
 h2 { margin: 0 0 8px; font: 600 15px/1.2 var(--f-display); }
@@ -113,7 +113,9 @@ li[data-state="ok"] .dot { background: var(--ok); border-color: var(--ok); box-s
 li[data-state="near"] .dot { border-color: var(--near); background: var(--accent-soft); }
 li[data-state="off"] .dot { border-color: var(--off); }
 .checks b { font-weight: 600; font-size: 13.5px; }
-.checks .val { display: block; font: 400 12px/1.45 var(--f-mono); color: var(--val); margin-top: 2px; font-variant-numeric: tabular-nums; }
+/* One value per line; --lines (set in the HTML) reserves the room for all of them */
+.checks .val { display: block; font: 400 12px/1.45 var(--f-mono); color: var(--val); margin-top: 2px; font-variant-numeric: tabular-nums;
+  white-space: nowrap; min-height: calc(var(--lines, 1) * 1.45em); }
 .checks p { margin: 3px 0 0; font-size: 12px; line-height: 1.45; color: var(--muted); }
 
 .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
@@ -161,5 +163,6 @@ select, input[type="datetime-local"] { background: var(--glass-2); border: 1px s
   #timebar { left: max(10px, env(safe-area-inset-left, 0px)); right: max(10px, env(safe-area-inset-right, 0px)); }
   .clock { font-size: 16px; }
   .hide-narrow { display: none; }
+  .checks .val { white-space: normal; }
 }
 #loading { position: fixed; inset: 0; display: grid; place-items: center; color: var(--muted); pointer-events: none; }

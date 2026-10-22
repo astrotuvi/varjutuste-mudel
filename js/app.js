@@ -511,13 +511,13 @@ function updatePanel(st) {
   const phase = ael < 10 ? 'noorkuu' : ael > 170 ? 'täiskuu' : (el > 0 ? (el < 90 ? 'kasvav sirp' : 'kasvav kuu') : (el > -90 ? 'kahanev sirp' : 'kahanev kuu'));
   const daysToNM = ((360 - ((el + 360) % 360)) % 360) / 12.19;
   setCheck('c1', ael < 1.5 ? 'ok' : ael < 25 ? 'near' : 'off',
-    `Kuu ja Päike ${fnum(ael, 1)}° kaugusel (${phase})<br>noorkuuni ${fnum(daysToNM, 1)} päeva`);
+    `Kuu ja Päike ${fnum(ael, 1)}° kaugusel<br>${phase} · noorkuuni ${fnum(daysToNM, 1)} päeva`);
 
   // 2. Sun near node
   const dn = Math.abs(wrapPi(2 * (st.sunLon - st.node)) / 2) / DEG;    // distance to the nearer node
   const beta = st.moonLat / DEG;
   setCheck('c2', dn < 18.5 ? 'ok' : dn < 30 ? 'near' : 'off',
-    `Päike sõlmest ${fnum(dn, 1)}°${dn < 18.5 ? ' · <span style="color:var(--ok)">hooaeg</span>' : ''}<br>Kuu ekliptikast ${fnum(Math.abs(beta), 2)}° ${beta >= 0 ? 'põhjas' : 'lõunas'} · orbiidi kalle ${fnum(st.incl / DEG, 2)}°`);
+    `Päike sõlmest ${fnum(dn, 1)}°${dn < 18.5 ? ' · <span style="color:var(--ok)">hooaeg</span>' : ''}<br>Kuu ekliptikast ${fnum(Math.abs(beta), 2)}° ${beta >= 0 ? 'põhjas' : 'lõunas'}<br>orbiidi kalle ${fnum(st.incl / DEG, 2)}°`);
 
   // 3. Axis hits Earth
   const ms = st.ms;
@@ -530,9 +530,9 @@ function updatePanel(st) {
   // 4. Umbra long enough
   const reach = ms.Lu - ms.tToSurface;
   const ratio = st.moonAng / st.sunAng;
-  let txt = `täisvari ${fint(ms.Lu * RE_KM)} km, Maa pinnani ${fint(ms.tToSurface * RE_KM)} km`;
-  txt += `<br>Kuu/Päike näiv läbimõõt ${fnum(ratio, 3)} · Kuu kaugus ${fint(st.moonKm)} km`;
-  if (ms.surf) txt += `<br>${ms.ruSurf > 0 ? 'täisvarju' : 'antumbra'} läbimõõt risti teljega ${fint(Math.abs(2 * ms.ruSurf) * RE_KM)} km`;
+  let txt = `täisvari ${fint(ms.Lu * RE_KM)} km<br>Maa pinnani ${fint(ms.tToSurface * RE_KM)} km`;
+  txt += `<br>Kuu/Päike näiv läbimõõt ${fnum(ratio, 3)}<br>Kuu kaugus ${fint(st.moonKm)} km`;
+  if (ms.surf) txt += `<br>${ms.ruSurf > 0 ? 'täisvarju' : 'antumbra'} laius risti teljega ${fint(Math.abs(2 * ms.ruSurf) * RE_KM)} km`;
   setCheck('c4', reach > 0 ? 'ok' : reach > -0.3 ? 'near' : 'off', txt);
 
   const distOut = $('distOut');
