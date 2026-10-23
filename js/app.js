@@ -423,13 +423,14 @@ function viewPose(name, st) {
   const side = new THREE.Vector3().crossVectors(up, s).normalize();
   const O = new THREE.Vector3();
   const D = S.Dd;
+  const earthDir = s.clone().addScaledVector(side, 0.9).addScaledVector(up, 0.35).normalize();
   switch (name) {
-    case 'overview': return { pos: side.clone().multiplyScalar(1.0).addScaledVector(s, -0.35).addScaledVector(up, 0.55).normalize().multiplyScalar(3.3 * D), tgt: s.clone().multiplyScalar(0.55 * D) };
+    case 'overview': { const tgt = s.clone().multiplyScalar(0.55 * D); return { pos: tgt.clone().addScaledVector(earthDir, 3.3 * D), tgt }; }
     case 'sun': return { pos: s.clone().multiplyScalar(7), tgt: O };
     case 'top': return { pos: up.clone().multiplyScalar(4.6 * D).addScaledVector(s, -0.02 * D), tgt: O };
     case 'edge': return { pos: side.clone().multiplyScalar(3.4 * D).addScaledVector(s, 0.6 * D).addScaledVector(up, 0.01 * D), tgt: s.clone().multiplyScalar(0.6 * D) };
     case 'shadow': { const m = W(v3.mul(st.moon, k)); return { pos: m.clone().addScaledVector(s, 5).addScaledVector(up, 0.8), tgt: O }; }
-    case 'earth': return { pos: s.clone().addScaledVector(side, 0.9).addScaledVector(up, 0.35).normalize().multiplyScalar(8), tgt: O };
+    case 'earth': return { pos: earthDir.clone().multiplyScalar(8), tgt: O };
     case 'moon': { const m = W(v3.mul(st.moon, k)); return { pos: m.clone().addScaledVector(s, 2.1).addScaledVector(side, 2.1).addScaledVector(up, 0.95), tgt: m }; }
     case 'spot': {
       let P = st.ms.surf;
