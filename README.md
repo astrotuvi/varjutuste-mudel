@@ -13,7 +13,7 @@ Earth and the Moon are drawn to scale. The Earth–Moon distance is compressed b
 - A live check of the conditions for a total solar eclipse: new moon, Sun near a node, γ, and whether the umbra reaches Earth
 - Camera views from the Sun, from the ecliptic, from behind the Moon and close to Earth, the umbra or the Moon
 - Two reference frames: the Sun fixed, which shows the line of nodes turning once per eclipse year (346.6 days), or the stars fixed
-- Jumps to the previous or next new moon and eclipse, and presets for selected eclipses from 1999 to 2061
+- Jumps to the previous or next new moon and eclipse, and presets for selected eclipses from 1990 to 2126
 - Dark and light colour schemes
 
 ## Running

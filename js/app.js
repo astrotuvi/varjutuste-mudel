@@ -752,11 +752,12 @@ addEventListener('keydown', ev => {
 const PRESETS = [
   ['solar', [2026, 8, 12, 18], '12.08.2026', 'Täielik · Gröönimaa, Island, Hispaania'],
   ['solar', [2027, 8, 2, 10], '02.08.2027', 'Täielik · Hispaania, Põhja-Aafrika, Egiptus'],
+  ['solar', [2028, 7, 22, 3], '22.07.2028', 'Täielik · Austraalia, Uus-Meremaa'],
   ['solar', [2026, 2, 17, 12], '17.02.2026', 'Rõngakujuline · Antarktika'],
   ['solar', [2024, 4, 8, 18], '08.04.2024', 'Täielik · Mehhiko, USA, Kanada'],
-  ['solar', [2023, 4, 20, 4], '20.04.2023', 'Hübriidne · Indoneesia, Austraalia'],
   ['solar', [1999, 8, 11, 11], '11.08.1999', 'Täielik · Kesk-Euroopa'],
-  ['solar', [2061, 4, 30, 15], '30.04.2061', 'Täielik · ka Eestis'],
+  ['solar', [1990, 7, 22, 3], '22.07.1990', 'Täielik · Soome, Põhja-Eesti, Venemaa'],
+  ['solar', [2126, 10, 16, 12], '16.10.2126', 'Täielik · järgmine Eestis'],
   ['lunar', [2025, 9, 7, 18], '07.09.2025', 'Täielik kuuvarjutus'],
   ['lunar', [2026, 8, 28, 4], '28.08.2026', 'Osaline kuuvarjutus'],
 ];
